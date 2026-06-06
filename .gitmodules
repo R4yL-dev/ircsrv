@@ -1,0 +1,3 @@
+[submodule "lib/parseconf"]
+	path = lib/parseconf
+	url = git@github.com:R4yL-dev/parseconf.git
