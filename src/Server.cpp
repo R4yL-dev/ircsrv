@@ -3,6 +3,7 @@
 #include "io/Epoll.hpp"
 #include "net/Socket.hpp"
 #include "net/tcp.hpp"
+#include "signals.hpp"
 
 #include <iostream>
 #include <vector>
@@ -15,7 +16,7 @@ Server::Server(const Config &cfg)
 void Server::run() {
     _epoll.add(_listen.fd());
 
-    while (true) {
+    while (!signals::stopRequested()) {
         std::vector<io::Event> events = _epoll.wait();
 
         for (size_t i = 0; i < events.size(); ++i) {

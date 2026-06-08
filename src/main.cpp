@@ -1,6 +1,7 @@
 #include "Config.hpp"
 #include "Server.hpp"
-#include "net/Socket.hpp"
+#include "io/Epoll.hpp"
+#include "signals.hpp"
 
 #include <exception>
 #include <iostream>
@@ -11,9 +12,12 @@ int main() {
     show_welcome_banner();
 
     try {
+        signals::setup();
+
         Config config("server.conf");
+
         Server srv(config);
-        std::cout << "Server running on: " << config.ip() << ":"
+        std::cout << "Starting server on: " << config.ip() << ":"
                   << config.port() << "\n";
         srv.run();
     } catch (const Config::Error &e) {
@@ -25,9 +29,12 @@ int main() {
     } catch (const net::Socket::Error &e) {
         std::cerr << "socket error: " << e.what() << "\n";
         return 3;
+    } catch (const io::Epoll::Error &e) {
+        std::cerr << "epoll error: " << e.what() << "\n";
+        return 4;
     } catch (const std::exception &e) {
         std::cerr << "error: " << e.what() << "\n";
-        return 4;
+        return 5;
     }
 
     return 0;
