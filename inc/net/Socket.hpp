@@ -1,6 +1,7 @@
 #ifndef NET_SOCKET_HPP
 #define NET_SOCKET_HPP
 
+#include "io/FdHandle.hpp"
 #include <stdexcept>
 #include <string>
 
@@ -14,15 +15,11 @@ class Socket {
     };
 
     explicit Socket(int fd);
-    ~Socket();
 
     int fd() const;
 
   private:
-    int _fd;
-
-    Socket(const Socket &);
-    Socket &operator=(const Socket &);
+    io::FdHandle _handle;
 };
 
 } // namespace net
