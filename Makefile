@@ -6,6 +6,7 @@ SRCS := $(addprefix src/, \
 	Server.cpp \
 	net/Socket.cpp \
 	net/tcp.cpp \
+	io/FdHandle.cpp \
 )
 OBJ_DIR := obj
 OBJS    := $(patsubst src/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
