@@ -1,7 +1,6 @@
 #include "net/tcp.hpp"
 #include "net/Socket.hpp"
 
-#include <asm-generic/socket.h>
 #include <cerrno>
 #include <cstring>
 #include <sstream>
@@ -12,7 +11,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+namespace {
 const int BACKLOG = SOMAXCONN;
+}
 
 static addrinfo *resolveAddresses(const std::string &host,
                                   const std::string &port, int domain, int type,
