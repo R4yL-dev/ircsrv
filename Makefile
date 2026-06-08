@@ -61,6 +61,14 @@ re :
 debug : CXXFLAGS += -g3 -O0
 debug : fclean all
 
+# Run the server under valgrind (memory + file descriptor checks).
+# Depends on debug so line numbers show up; the server blocks until you Ctrl+C,
+# at which point valgrind prints its leak and fd report.
+VG_FLAGS := --leak-check=full --show-leak-kinds=all --track-fds=yes
+
+valgrind : debug
+	valgrind $(VG_FLAGS) ./$(NAME)
+
 # Regenerate compile_commands.json (for clangd/LSP) from a clean build.
 # Optional dev tool: requires `bear`, not needed for a normal build.
 compile_commands :
@@ -70,5 +78,5 @@ compile_commands :
 info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
-.PHONY : all clean fclean re debug compile_commands info-
+.PHONY : all clean fclean re debug valgrind compile_commands info-
 .SILENT :
