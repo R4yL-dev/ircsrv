@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include "Config.hpp"
+#include "io/Epoll.hpp"
 #include "net/Socket.hpp"
 
 #include <stdexcept>
@@ -21,6 +22,7 @@ class Server {
   private:
     const Config _config;
     net::Socket _listen;
+    io::Epoll _epoll;
 };
 
 #endif
