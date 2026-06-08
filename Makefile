@@ -7,6 +7,7 @@ SRCS := $(addprefix src/, \
 	Client.cpp \
 	net/Socket.cpp \
 	net/tcp.cpp \
+	net/Connection.cpp \
 	io/FdHandle.cpp \
 	io/Epoll.cpp \
 	signals.cpp \
