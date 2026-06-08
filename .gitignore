@@ -1,3 +1,4 @@
 # Build artifacts
 obj/
 ircserv
+compile_commands.json
