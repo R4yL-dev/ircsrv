@@ -1,5 +1,6 @@
 #include "Config.hpp"
 #include "Server.hpp"
+#include "net/Socket.hpp"
 
 #include <exception>
 #include <iostream>
@@ -21,9 +22,12 @@ int main() {
     } catch (const Server::Error &e) {
         std::cerr << "server error: " << e.what() << "\n";
         return 2;
+    } catch (const net::Socket::Error &e) {
+        std::cerr << "socket error: " << e.what() << "\n";
+        return 3;
     } catch (const std::exception &e) {
         std::cerr << "error: " << e.what() << "\n";
-        return 3;
+        return 4;
     }
 
     return 0;
