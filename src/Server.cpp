@@ -6,10 +6,16 @@
 #include "net/tcp.hpp"
 #include "signals.hpp"
 
+#include <cstddef>
 #include <iostream>
 #include <map>
-#include <sys/types.h>
 #include <vector>
+
+#include <sys/types.h>
+
+namespace {
+const std::size_t READ_BUFFER_SIZE = 512;
+}
 
 Server::Server(const Config &cfg)
     : _config(cfg), _listen(net::tcpListen(cfg.ip(), cfg.port())) {}
@@ -37,7 +43,7 @@ void Server::run() {
                 int fd = events[i].fd;
                 Client *client = _clients[fd];
 
-                char buf[512];
+                char buf[READ_BUFFER_SIZE];
                 ssize_t n = client->recv(buf, sizeof(buf));
 
                 if (n <= 0) {
