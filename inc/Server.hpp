@@ -1,24 +1,26 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef SERVER_HPP
+#define SERVER_HPP
+
+#include "Config.hpp"
+#include "net/Socket.hpp"
 
 #include <stdexcept>
 #include <string>
 
-class Config {
+class Server {
   public:
     class Error : public std::runtime_error {
       public:
         explicit Error(const std::string &msg) : std::runtime_error(msg) {}
     };
 
-    explicit Config(const std::string &path);
+    explicit Server(const Config &cfg);
 
-    int port() const;
-    const std::string &ip() const;
+    void run();
 
   private:
-    int _port;
-    std::string _ip;
+    const Config _config;
+    net::Socket _listen;
 };
 
 #endif

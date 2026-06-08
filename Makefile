@@ -3,6 +3,9 @@ NAME := ircserv
 SRCS := $(addprefix src/, \
 	main.cpp \
 	Config.cpp \
+	Server.cpp \
+	net/Socket.cpp \
+	net/tcp.cpp \
 )
 OBJ_DIR := obj
 OBJS    := $(patsubst src/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
@@ -11,6 +14,8 @@ OBJS    := $(patsubst src/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 CFG_DIR := lib/parseconf
 CFG_LIB := $(CFG_DIR)/libcfg.a
 CFG_INC := $(CFG_DIR)/inc
+# Sources of the lib: used as prerequisites so libcfg.a is rebuilt when they change.
+CFG_SRCS := $(wildcard $(CFG_DIR)/src/*.cpp $(CFG_DIR)/inc/*.hpp)
 
 CXX := c++
 CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -Iinc/ -I$(CFG_INC)
@@ -26,7 +31,8 @@ $(NAME) : $(CFG_LIB) $(OBJS)
 	$(info CREATED $(NAME))
 
 # Build (or rebuild) the library by recursing into its own Makefile.
-$(CFG_LIB) :
+# Depends on the lib's sources/headers so a change there triggers a rebuild.
+$(CFG_LIB) : $(CFG_SRCS)
 	$(MAKE) -C $(CFG_DIR)
 
 $(OBJ_DIR)/%.o : src/%.cpp
@@ -47,8 +53,14 @@ re :
 	$(MAKE) fclean
 	$(MAKE) all
 
+# Regenerate compile_commands.json (for clangd/LSP) from a clean build.
+# Optional dev tool: requires `bear`, not needed for a normal build.
+compile_commands :
+	$(MAKE) fclean
+	bear -- $(MAKE)
+
 info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
-.PHONY : all clean fclean re info-
+.PHONY : all clean fclean re compile_commands info-
 .SILENT :

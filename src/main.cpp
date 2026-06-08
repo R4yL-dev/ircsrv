@@ -1,32 +1,32 @@
-#include "IrcServ.hpp"
 #include "Config.hpp"
+#include "Server.hpp"
 
+#include <exception>
 #include <iostream>
 
-static void show_infos();
+static void show_welcome_banner();
 
-int main(int ac, char **av) {
-    (void)ac;
-    (void)av;
-    show_infos();
+int main() {
+    show_welcome_banner();
 
-    std::cout << "PARSING CONFIG...\n";
     try {
         Config config("server.conf");
-        std::cout << " - port = " << config.port() << "\n";
-    }
-    catch (const Config::Error& e) {
+        Server srv(config);
+        std::cout << "Server running on: " << config.ip() << ":"
+                  << config.port() << "\n";
+        srv.run();
+    } catch (const Config::Error &e) {
         std::cerr << "config error: " << e.what() << "\n";
         return 1;
+    } catch (const Server::Error &e) {
+        std::cerr << "server error: " << e.what() << "\n";
+        return 2;
+    } catch (const std::exception &e) {
+        std::cerr << "error: " << e.what() << "\n";
+        return 3;
     }
 
-    std::cout << "RUNNING SERVER...\n";
-
-	return 0;
+    return 0;
 }
 
-void show_infos() {
-    std::cout << "IRCServ\n";
-    std::cout << " - Version: " << VERSION << "\n";
-    std::cout << " - Build date: " << __DATE__ << "\n\n";
-}
+void show_welcome_banner() { std::cout << "Welcome to IRCServ !\n\n"; }
