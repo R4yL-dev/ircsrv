@@ -1,19 +1,22 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+#include "LineBuffer.hpp"
 #include "net/Connection.hpp"
-#include <cstddef>
-#include <sys/types.h>
+
+#include <string>
 
 class Client {
   public:
     explicit Client(int fd);
 
     int fd() const;
-    ssize_t recv(char *buf, size_t len);
+    bool receive();
+    bool getNextMessage(std::string &out);
 
   private:
     net::Connection _conn;
+    LineBuffer _inbuf;
 };
 
 #endif

@@ -9,13 +9,8 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
+#include <string>
 #include <vector>
-
-#include <sys/types.h>
-
-namespace {
-const std::size_t READ_BUFFER_SIZE = 512;
-}
 
 Server::Server(const Config &cfg)
     : _config(cfg), _listen(net::tcpListen(cfg.ip(), cfg.port())) {}
@@ -43,17 +38,17 @@ void Server::run() {
                 int fd = events[i].fd;
                 Client *client = _clients[fd];
 
-                char buf[READ_BUFFER_SIZE];
-                ssize_t n = client->recv(buf, sizeof(buf));
-
-                if (n <= 0) {
+                if (!client->receive()) {
                     _epoll.remove(fd);
                     delete _clients[fd];
                     _clients.erase(fd);
                     std::cout << "Client disconnected (fd=" << fd << ")\n";
                 } else {
-                    std::cout << "Received from fd=" << fd << ": ";
-                    std::cout.write(buf, n);
+                    std::string msg;
+                    while (client->getNextMessage(msg)) {
+                        std::cout << "Message from fd=" << fd << ": " << msg
+                                  << "\n";
+                    }
                 }
             }
         }
