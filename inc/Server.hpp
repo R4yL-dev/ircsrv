@@ -1,10 +1,12 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include "Client.hpp"
 #include "Config.hpp"
 #include "io/Epoll.hpp"
 #include "net/Socket.hpp"
 
+#include <map>
 #include <stdexcept>
 #include <string>
 
@@ -16,6 +18,7 @@ class Server {
     };
 
     explicit Server(const Config &cfg);
+    ~Server();
 
     void run();
 
@@ -23,6 +26,7 @@ class Server {
     const Config _config;
     net::Socket _listen;
     io::Epoll _epoll;
+    std::map<int, Client *> _clients;
 };
 
 #endif
