@@ -5,6 +5,7 @@ SRCS := $(addprefix src/, \
 	Config.cpp \
 	Server.cpp \
 	Client.cpp \
+	LineBuffer.cpp \
 	net/Socket.cpp \
 	net/tcp.cpp \
 	net/Connection.cpp \
