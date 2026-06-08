@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <map>
+#include <sys/types.h>
 #include <vector>
 
 Server::Server(const Config &cfg)
@@ -31,6 +32,23 @@ void Server::run() {
                 int clientFd = net::tcpAccept(_listen.fd());
                 std::cout << "Client connected (fd=" << clientFd << ")\n";
                 _clients[clientFd] = new Client(clientFd);
+                _epoll.add(clientFd);
+            } else {
+                int fd = events[i].fd;
+                Client *client = _clients[fd];
+
+                char buf[512];
+                ssize_t n = client->recv(buf, sizeof(buf));
+
+                if (n <= 0) {
+                    _epoll.remove(fd);
+                    delete _clients[fd];
+                    _clients.erase(fd);
+                    std::cout << "Client disconnected (fd=" << fd << ")\n";
+                } else {
+                    std::cout << "Received from fd=" << fd << ": ";
+                    std::cout.write(buf, n);
+                }
             }
         }
     }
