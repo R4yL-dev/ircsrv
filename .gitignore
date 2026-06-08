@@ -2,3 +2,6 @@
 obj/
 ircserv
 compile_commands.json
+
+# Editor settings (personal, machine-specific)
+.vscode/

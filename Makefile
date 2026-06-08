@@ -53,6 +53,12 @@ re :
 	$(MAKE) fclean
 	$(MAKE) all
 
+# Rebuild everything with debug symbols and no optimization (for gdb/VS Code).
+# The target-specific CXXFLAGS also applies to the prerequisites (fclean all),
+# and fclean forces a full recompile so the new flags take effect.
+debug : CXXFLAGS += -g3 -O0
+debug : fclean all
+
 # Regenerate compile_commands.json (for clangd/LSP) from a clean build.
 # Optional dev tool: requires `bear`, not needed for a normal build.
 compile_commands :
@@ -62,5 +68,5 @@ compile_commands :
 info-%:
 	$(MAKE) --dry-run --always-make $* | grep -v "info"
 
-.PHONY : all clean fclean re compile_commands info-
+.PHONY : all clean fclean re debug compile_commands info-
 .SILENT :
