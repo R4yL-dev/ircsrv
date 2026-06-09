@@ -50,7 +50,6 @@ std::vector<io::Event> io::Epoll::wait() {
     for (int i = 0; i < n; i++) {
         io::Event ev;
         ev.fd = events[i].data.fd;
-        ev.readable = (events[i].events & (EPOLLIN | EPOLLERR | EPOLLHUP)) != 0;
         ready.push_back(ev);
     }
 

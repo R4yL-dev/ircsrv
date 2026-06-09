@@ -11,7 +11,6 @@ namespace io {
 
 struct Event {
     int fd;
-    bool readable;
 };
 
 class Epoll {
