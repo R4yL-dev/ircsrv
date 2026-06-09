@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "Error.hpp"
 #include "Server.hpp"
 #include "io/Epoll.hpp"
 #include "net/Socket.hpp"
@@ -30,9 +31,12 @@ int main() {
     } catch (const io::Epoll::Error &e) {
         std::cerr << "epoll error: " << e.what() << "\n";
         return 3;
+    } catch (const FatalError &e) {
+        std::cerr << "fatal error: " << e.what() << "\n";
+        return 4;
     } catch (const std::exception &e) {
         std::cerr << "error: " << e.what() << "\n";
-        return 4;
+        return 5;
     }
 
     return 0;

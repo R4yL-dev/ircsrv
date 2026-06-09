@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Config.hpp"
+#include "Error.hpp"
 #include "io/Epoll.hpp"
 #include "net/Socket.hpp"
 #include "net/tcp.hpp"
@@ -9,6 +10,7 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -30,10 +32,17 @@ void Server::run() {
 
         for (std::size_t i = 0; i < events.size(); ++i) {
             int fd = events[i].fd;
-            if (fd == _listen.fd()) {
-                handleNewConnection();
-            } else {
-                handleClientData(fd);
+            try {
+                if (fd == _listen.fd()) {
+                    acceptClient();
+                } else {
+                    handleClientData(fd);
+                }
+            } catch (const FatalError &) {
+                throw;
+            } catch (const std::runtime_error &e) {
+                std::cerr << "client error (fd=" << fd << "): " << e.what()
+                          << "\n";
             }
         }
     }
@@ -51,14 +60,6 @@ void Server::disconnectClient(int fd) {
     delete _clients[fd];
     _clients.erase(fd);
     std::cout << "Client disconnected (fd=" << fd << ")\n";
-}
-
-void Server::handleNewConnection() {
-    try {
-        acceptClient();
-    } catch (const net::Socket::Error &e) {
-        std::cerr << "accept failed: " << e.what() << "\n";
-    }
 }
 
 void Server::handleClientData(int fd) {
