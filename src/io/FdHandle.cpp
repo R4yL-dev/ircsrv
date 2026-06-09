@@ -11,3 +11,11 @@ io::FdHandle::~FdHandle() {
 }
 
 int io::FdHandle::fd() const { return _fd; }
+
+int io::FdHandle::release() {
+    int fd = _fd;
+
+    _fd = -1;
+
+    return fd;
+}

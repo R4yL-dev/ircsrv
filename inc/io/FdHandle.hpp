@@ -9,6 +9,7 @@ class FdHandle {
     ~FdHandle();
 
     int fd() const;
+    int release();
 
   private:
     int _fd;

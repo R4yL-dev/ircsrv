@@ -3,6 +3,7 @@
 #include "Config.hpp"
 #include "Error.hpp"
 #include "io/Epoll.hpp"
+#include "io/FdHandle.hpp"
 #include "net/Socket.hpp"
 #include "net/tcp.hpp"
 #include "signals.hpp"
@@ -10,6 +11,7 @@
 #include <cstddef>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -57,9 +59,16 @@ void Server::run() {
 }
 
 void Server::acceptClient() {
-    int clientFd = net::tcpAccept(_listen.fd());
-    _clients[clientFd] = new Client(clientFd);
+    io::FdHandle handle(net::tcpAccept(_listen.fd()));
+    int clientFd = handle.fd();
+
+    std::auto_ptr<Client> client(new Client(clientFd));
+    handle.release();
+
     _epoll.add(clientFd);
+    _clients[clientFd] = client.get();
+    client.release();
+
     std::cout << "Client connected (fd=" << clientFd << ")\n";
 }
 
