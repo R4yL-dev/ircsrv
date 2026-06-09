@@ -29,34 +29,11 @@ void Server::run() {
         std::vector<io::Event> events = _epoll.wait();
 
         for (std::size_t i = 0; i < events.size(); ++i) {
-            if (events[i].fd == _listen.fd()) {
-                try {
-                    acceptClient();
-                } catch (const net::Socket::Error &e) {
-                    std::cerr << "accept failed: " << e.what() << "\n";
-                }
+            int fd = events[i].fd;
+            if (fd == _listen.fd()) {
+                handleNewConnection();
             } else {
-                int fd = events[i].fd;
-
-                std::map<int, Client *>::iterator it = _clients.find(fd);
-                if (it == _clients.end()) {
-                    continue;
-                }
-                Client *client = it->second;
-
-                if (!client->receive()) {
-                    disconnectClient(fd);
-                } else {
-                    std::string msg;
-                    bool alive = true;
-                    while (alive && client->getNextMessage(msg)) {
-                        std::string reply = msg + "\r\n";
-                        if (!client->send(reply.c_str(), reply.size())) {
-                            disconnectClient(fd);
-                            alive = false;
-                        }
-                    }
-                }
+                handleClientData(fd);
             }
         }
     }
@@ -74,4 +51,33 @@ void Server::disconnectClient(int fd) {
     delete _clients[fd];
     _clients.erase(fd);
     std::cout << "Client disconnected (fd=" << fd << ")\n";
+}
+
+void Server::handleNewConnection() {
+    try {
+        acceptClient();
+    } catch (const net::Socket::Error &e) {
+        std::cerr << "accept failed: " << e.what() << "\n";
+    }
+}
+
+void Server::handleClientData(int fd) {
+    std::map<int, Client *>::iterator it = _clients.find(fd);
+    if (it == _clients.end()) {
+        return;
+    }
+    Client *client = it->second;
+
+    if (!client->receive()) {
+        disconnectClient(fd);
+        return;
+    }
+    std::string msg;
+    while (client->getNextMessage(msg)) {
+        std::string reply = msg + "\r\n";
+        if (!client->send(reply.c_str(), reply.size())) {
+            disconnectClient(fd);
+            return;
+        }
+    }
 }

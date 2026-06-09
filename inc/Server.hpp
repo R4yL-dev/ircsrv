@@ -18,6 +18,8 @@ class Server {
   private:
     void acceptClient();
     void disconnectClient(int fd);
+    void handleNewConnection();
+    void handleClientData(int fd);
 
     const Config _config;
     net::Socket _listen;
