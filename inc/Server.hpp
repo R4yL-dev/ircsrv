@@ -4,6 +4,7 @@
 #include "Client.hpp"
 #include "Config.hpp"
 #include "io/Epoll.hpp"
+#include "io/SignalFd.hpp"
 #include "net/Socket.hpp"
 
 #include <map>
@@ -23,6 +24,7 @@ class Server {
     const Config _config;
     net::Socket _listen;
     io::Epoll _epoll;
+    io::SignalFd _signalFd;
     std::map<int, Client *> _clients;
 };
 

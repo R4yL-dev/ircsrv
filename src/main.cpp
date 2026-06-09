@@ -3,7 +3,6 @@
 #include "Server.hpp"
 #include "io/Epoll.hpp"
 #include "net/Socket.hpp"
-#include "signals.hpp"
 
 #include <exception>
 #include <iostream>
@@ -14,8 +13,6 @@ int main() {
     show_welcome_banner();
 
     try {
-        signals::setup();
-
         Config config("server.conf");
 
         Server srv(config);

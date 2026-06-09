@@ -12,6 +12,7 @@ SRCS := $(addprefix src/, \
 	net/Connection.cpp \
 	io/FdHandle.cpp \
 	io/Epoll.cpp \
+	io/SignalFd.cpp \
 	signals.cpp \
 )
 OBJ_DIR := obj

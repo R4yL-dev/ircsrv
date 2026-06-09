@@ -15,7 +15,8 @@
 #include <vector>
 
 Server::Server(const Config &cfg)
-    : _config(cfg), _listen(net::tcpListen(cfg.ip(), cfg.port())) {}
+    : _config(cfg), _listen(net::tcpListen(cfg.ip(), cfg.port())),
+      _signalFd(signals::shutdownMask()) {}
 
 Server::~Server() {
     for (std::map<int, Client *>::iterator it = _clients.begin();
@@ -26,12 +27,19 @@ Server::~Server() {
 
 void Server::run() {
     _epoll.add(_listen.fd());
+    _epoll.add(_signalFd.fd());
 
-    while (!signals::stopRequested()) {
+    while (true) {
         std::vector<io::Event> events = _epoll.wait();
 
         for (std::size_t i = 0; i < events.size(); ++i) {
             int fd = events[i].fd;
+
+            if (fd == _signalFd.fd()) {
+                _signalFd.readSignal();
+                return;
+            }
+
             try {
                 if (fd == _listen.fd()) {
                     acceptClient();

@@ -1,10 +1,11 @@
 #ifndef SIGNALS_HPP
 #define SIGNALS_HPP
 
+#include <csignal>
+
 namespace signals {
 
-void setup();
-bool stopRequested();
+sigset_t shutdownMask();
 
 } // namespace signals
 
