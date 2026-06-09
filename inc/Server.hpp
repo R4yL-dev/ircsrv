@@ -7,22 +7,18 @@
 #include "net/Socket.hpp"
 
 #include <map>
-#include <stdexcept>
-#include <string>
 
 class Server {
   public:
-    class Error : public std::runtime_error {
-      public:
-        explicit Error(const std::string &msg) : std::runtime_error(msg) {}
-    };
-
     explicit Server(const Config &cfg);
     ~Server();
 
     void run();
 
   private:
+    void acceptClient();
+    void disconnectClient(int fd);
+
     const Config _config;
     net::Socket _listen;
     io::Epoll _epoll;

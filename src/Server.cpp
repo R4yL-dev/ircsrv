@@ -28,29 +28,50 @@ void Server::run() {
     while (!signals::stopRequested()) {
         std::vector<io::Event> events = _epoll.wait();
 
-        for (size_t i = 0; i < events.size(); ++i) {
+        for (std::size_t i = 0; i < events.size(); ++i) {
             if (events[i].fd == _listen.fd()) {
-                int clientFd = net::tcpAccept(_listen.fd());
-                std::cout << "Client connected (fd=" << clientFd << ")\n";
-                _clients[clientFd] = new Client(clientFd);
-                _epoll.add(clientFd);
+                try {
+                    acceptClient();
+                } catch (const net::Socket::Error &e) {
+                    std::cerr << "accept failed: " << e.what() << "\n";
+                }
             } else {
                 int fd = events[i].fd;
-                Client *client = _clients[fd];
+
+                std::map<int, Client *>::iterator it = _clients.find(fd);
+                if (it == _clients.end()) {
+                    continue;
+                }
+                Client *client = it->second;
 
                 if (!client->receive()) {
-                    _epoll.remove(fd);
-                    delete _clients[fd];
-                    _clients.erase(fd);
-                    std::cout << "Client disconnected (fd=" << fd << ")\n";
+                    disconnectClient(fd);
                 } else {
                     std::string msg;
-                    while (client->getNextMessage(msg)) {
-                        std::cout << "Message from fd=" << fd << ": " << msg
-                                  << "\n";
+                    bool alive = true;
+                    while (alive && client->getNextMessage(msg)) {
+                        std::string reply = msg + "\r\n";
+                        if (!client->send(reply.c_str(), reply.size())) {
+                            disconnectClient(fd);
+                            alive = false;
+                        }
                     }
                 }
             }
         }
     }
+}
+
+void Server::acceptClient() {
+    int clientFd = net::tcpAccept(_listen.fd());
+    _clients[clientFd] = new Client(clientFd);
+    _epoll.add(clientFd);
+    std::cout << "Client connected (fd=" << clientFd << ")\n";
+}
+
+void Server::disconnectClient(int fd) {
+    _epoll.remove(fd);
+    delete _clients[fd];
+    _clients.erase(fd);
+    std::cout << "Client disconnected (fd=" << fd << ")\n";
 }

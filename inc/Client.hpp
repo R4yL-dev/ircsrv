@@ -4,6 +4,7 @@
 #include "LineBuffer.hpp"
 #include "net/Connection.hpp"
 
+#include <cstddef>
 #include <string>
 
 class Client {
@@ -12,6 +13,7 @@ class Client {
 
     int fd() const;
     bool receive();
+    bool send(const char *data, std::size_t len);
     bool getNextMessage(std::string &out);
 
   private:

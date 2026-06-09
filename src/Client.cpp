@@ -20,4 +20,8 @@ bool Client::receive() {
     return _inbuf.append(buf, n);
 }
 
+bool Client::send(const char *data, std::size_t len) {
+    return _conn.send(data, len);
+}
+
 bool Client::getNextMessage(std::string &out) { return _inbuf.getLine(out); }
