@@ -14,7 +14,8 @@ class Connection {
     explicit Connection(int fd);
 
     int fd() const;
-    ssize_t recv(char *buf, size_t len);
+    ssize_t recv(char *buf, std::size_t len);
+    bool send(const char *data, std::size_t len);
 
   private:
     Socket _socket;
