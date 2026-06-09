@@ -3,15 +3,19 @@
 #include <string>
 
 LineBuffer::LineBuffer(std::size_t maxLineLength)
-    : _maxLineLength(maxLineLength) {}
+    : _maxLineLength(maxLineLength), _lineLen(0) {}
 
-bool LineBuffer::append(const char *data, std::size_t len) {
-    _buf.append(data, len);
-
-    if (_buf.find('\n') == std::string::npos && _buf.size() > _maxLineLength) {
-        return false;
+void LineBuffer::append(const char *data, std::size_t len) {
+    for (std::size_t i = 0; i < len; ++i) {
+        char c = data[i];
+        if (c == '\n') {
+            _buf += c;
+            _lineLen = 0;
+        } else if (_lineLen < _maxLineLength) {
+            _buf += c;
+            ++_lineLen;
+        }
     }
-    return true;
 }
 
 bool LineBuffer::getLine(std::string &out) {

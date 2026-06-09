@@ -4,7 +4,7 @@
 
 namespace {
 const std::size_t READ_BUFFER_SIZE = 512;
-const std::size_t MAX_MESSAGE_LENGTH = 512;
+const std::size_t MAX_MESSAGE_LENGTH = 510;
 } // namespace
 
 Client::Client(int fd) : _conn(fd), _inbuf(MAX_MESSAGE_LENGTH) {}
@@ -17,7 +17,8 @@ bool Client::receive() {
     if (n <= 0) {
         return false;
     }
-    return _inbuf.append(buf, n);
+    _inbuf.append(buf, n);
+    return true;
 }
 
 bool Client::send(const char *data, std::size_t len) {
