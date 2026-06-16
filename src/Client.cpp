@@ -1,28 +1,32 @@
 #include "Client.hpp"
+
 #include <cstddef>
-#include <sys/types.h>
 
 namespace {
-const std::size_t READ_BUFFER_SIZE = 512;
-const std::size_t MAX_MESSAGE_LENGTH = 510;
+const std::size_t MAX_MESSAGE_LENGTH = 510; // RFC 2812 line length cap
 } // namespace
 
-Client::Client(int fd) : _conn(fd), _inbuf(MAX_MESSAGE_LENGTH) {}
+// The ctor adopts the fd but does no throwing work, so acceptClients' RAII guard
+// stays leak-safe; setNonBlocking() is called separately once the Client owns it.
+Client::Client(int fd, std::size_t maxSendQueue)
+    : _conn(fd, maxSendQueue), _framer(MAX_MESSAGE_LENGTH) {}
 
 int Client::fd() const { return _conn.fd(); }
 
-bool Client::receive() {
-    char buf[READ_BUFFER_SIZE];
-    ssize_t n = _conn.recv(buf, sizeof(buf));
-    if (n <= 0) {
-        return false;
-    }
-    _inbuf.append(buf, n);
-    return true;
+void Client::setNonBlocking() { _conn.setNonBlocking(); }
+
+net::IoStatus Client::receive() { return _conn.fillInput(); }
+
+bool Client::getNextMessage(std::string &out) {
+    return _framer.nextLine(_conn.inbound(), out);
 }
 
-bool Client::send(const char *data, std::size_t len) {
-    return _conn.send(data, len);
+net::IoStatus Client::queueSend(const char *data, std::size_t len) {
+    return _conn.queueSend(data, len);
 }
 
-bool Client::getNextMessage(std::string &out) { return _inbuf.getLine(out); }
+net::IoStatus Client::flush() { return _conn.flushOutput(); }
+
+bool Client::hasPendingOutput() const { return _conn.hasPendingOutput(); }
+
+const char *Client::closeReason() const { return _conn.closeReason(); }

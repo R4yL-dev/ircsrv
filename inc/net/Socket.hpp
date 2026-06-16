@@ -18,6 +18,10 @@ class Socket {
 
     int fd() const;
 
+    // Opt-in: the caller decides blocking vs non-blocking. The library never
+    // forces a mode, so a Socket stays whatever the adopted fd already was.
+    void setNonBlocking();
+
   private:
     io::FdHandle _handle;
 };

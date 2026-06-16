@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 
+#include <fcntl.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -13,8 +14,14 @@
 
 namespace {
 const int BACKLOG = SOMAXCONN;
-}
+} // namespace
 
+// Per-connection failures that are not fatal to the server: the pending
+// connection died before we accepted it, or a queued network error surfaced.
+// We skip it and try the next one.
+static bool isAcceptTransient(int err);
+// Resource exhaustion: accepting will keep failing until something frees up.
+static bool isAcceptThrottled(int err);
 static addrinfo *resolveAddresses(const std::string &host,
                                   const std::string &port, int domain, int type,
                                   int proto);
@@ -26,7 +33,7 @@ int net::tcpListen(const std::string &host, int port) {
     std::string port_str = oss.str();
 
     struct addrinfo *result =
-        resolveAddresses(host, port_str, AF_INET, SOCK_STREAM, 0);
+        resolveAddresses(host, port_str, AF_UNSPEC, SOCK_STREAM, 0);
 
     int fd = -1;
     for (const addrinfo *rp = result; rp != NULL; rp = rp->ai_next) {
@@ -43,20 +50,53 @@ int net::tcpListen(const std::string &host, int port) {
     }
 
     if (listen(fd, BACKLOG) == -1) {
-        int err = errno;
+        int e = errno;
         close(fd);
-        throw net::Socket::Error(std::strerror(err));
+        throw net::Socket::Error(std::strerror(e));
+    }
+
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        int e = errno;
+        close(fd);
+        throw net::Socket::Error(std::strerror(e));
     }
 
     return fd;
 }
 
-int net::tcpAccept(int listenFd) {
-    int fd = accept(listenFd, NULL, NULL);
-    if (fd == -1) {
-        throw net::Socket::Error(std::strerror(errno));
+net::AcceptStatus net::tcpAccept(int listenFd, int &outFd) {
+    for (;;) {
+        int fd = accept(listenFd, NULL, NULL);
+        if (fd != -1) {
+            outFd = fd;
+            return AcceptOk;
+        }
+        int err = errno;
+        if (err == EINTR) {
+            continue;
+        }
+        if (err == EAGAIN || err == EWOULDBLOCK) {
+            return AcceptWouldBlock;
+        }
+        if (isAcceptThrottled(err)) {
+            return AcceptThrottled;
+        }
+        if (isAcceptTransient(err)) {
+            continue; // skip this dead connection, try the next
+        }
+        throw net::Socket::Error(std::strerror(err));
     }
-    return fd;
+}
+
+bool isAcceptTransient(int err) {
+    return err == ECONNABORTED || err == EPROTO || err == ENETUNREACH ||
+           err == EHOSTUNREACH || err == ENONET || err == ENETDOWN ||
+           err == EHOSTDOWN;
+}
+
+bool isAcceptThrottled(int err) {
+    return err == EMFILE || err == ENFILE || err == ENOBUFS || err == ENOMEM;
 }
 
 addrinfo *resolveAddresses(const std::string &host, const std::string &port,

@@ -3,6 +3,9 @@ obj/
 ircserv
 compile_commands.json
 
+# Valgrind core dumps
+vgcore.*
+
 # Editor settings (personal, machine-specific)
 .vscode/
 .cache/

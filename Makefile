@@ -5,7 +5,7 @@ SRCS := $(addprefix src/, \
 	Config.cpp \
 	Server.cpp \
 	Client.cpp \
-	LineBuffer.cpp \
+	framing/LineFramer.cpp \
 	Error.cpp \
 	net/Socket.cpp \
 	net/tcp.cpp \
@@ -13,6 +13,7 @@ SRCS := $(addprefix src/, \
 	io/FdHandle.cpp \
 	io/Epoll.cpp \
 	io/SignalFd.cpp \
+	util/Buffer.cpp \
 	signals.cpp \
 )
 OBJ_DIR := obj
