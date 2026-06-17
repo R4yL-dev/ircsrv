@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "EchoHandler.hpp"
 #include "Error.hpp"
 #include "Server.hpp"
 #include "io/Epoll.hpp"
@@ -15,7 +16,8 @@ int main() {
     try {
         Config config("server.conf");
 
-        Server srv(config);
+        EchoHandler handler;
+        Server srv(config, handler);
         std::cout << "Starting server on: " << config.ip() << ":"
                   << config.port() << "\n";
         srv.run();

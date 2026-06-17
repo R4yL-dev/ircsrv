@@ -36,7 +36,9 @@ class Epoll {
     void setWritable(int fd, bool on);
     void remove(int fd);
 
-    std::vector<Event> wait();
+    // Block until an fd is ready or timeoutMs elapses (-1 = no timeout). On
+    // timeout returns an empty vector, so the caller's loop ticks regardless.
+    std::vector<Event> wait(int timeoutMs);
 
   private:
     struct Interest {

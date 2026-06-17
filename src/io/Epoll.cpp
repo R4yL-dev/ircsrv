@@ -59,9 +59,9 @@ void io::Epoll::remove(int fd) {
     }
 }
 
-std::vector<io::Event> io::Epoll::wait() {
+std::vector<io::Event> io::Epoll::wait(int timeoutMs) {
     struct epoll_event events[MAX_EVENTS];
-    int n = epoll_wait(_handle.fd(), events, MAX_EVENTS, -1);
+    int n = epoll_wait(_handle.fd(), events, MAX_EVENTS, timeoutMs);
     if (n < 0) {
         if (errno == EINTR) {
             return std::vector<io::Event>();
