@@ -27,8 +27,10 @@ DEPS    := $(OBJS:.o=.d)
 CFG_DIR := lib/parseconf
 CFG_LIB := $(CFG_DIR)/libcfg.a
 CFG_INC := $(CFG_DIR)/inc
-# Sources of the lib: used as prerequisites so libcfg.a is rebuilt when they change.
-CFG_SRCS := $(wildcard $(CFG_DIR)/src/*.cpp $(CFG_DIR)/inc/*.hpp)
+# Sources of the lib: used as prerequisites so libcfg.a is rebuilt when they
+# change. Includes src/*.hpp (lexer.hpp, token.hpp) so an internal-header edit
+# also triggers the recurse, not just src/*.cpp and the public inc/*.hpp.
+CFG_SRCS := $(wildcard $(CFG_DIR)/src/*.cpp $(CFG_DIR)/src/*.hpp $(CFG_DIR)/inc/*.hpp)
 
 CXX := c++
 # -MMD -MP: emit a .d per object listing the headers it includes (-MP adds
