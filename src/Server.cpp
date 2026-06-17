@@ -19,7 +19,6 @@
 #include <vector>
 
 namespace {
-const std::size_t MAX_SEND_QUEUE = 1024 * 1024; // 1 MiB per-client send backlog
 const int TICK_MS = 1000; // coarse cadence of the onTick time hook (ms)
 } // namespace
 
@@ -87,7 +86,8 @@ void Server::acceptClients() {
         }
 
         io::FdHandle handle(rawFd);
-        std::auto_ptr<Client> client(new Client(rawFd, MAX_SEND_QUEUE));
+        std::auto_ptr<Client> client(
+            new Client(rawFd, _config.maxSendQueue()));
         handle.release(); // Client now solely owns the fd
         client
             ->setNonBlocking(); // throws => auto_ptr closes the fd exactly once
